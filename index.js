@@ -19,33 +19,41 @@ app.get('/api/:date?', (req, res) => {
   let date;
   const dateParam = req.params.date;
 
-  // If no date parameter is provided, use current date
-  if (!dateParam) {
-    date = new Date();
-  } else {
-    // Check if dateParam is a Unix timestamp (all digits)
-    if (/^\d+$/.test(dateParam)) {
-      date = new Date(parseInt(dateParam));
+  try {
+    // If no date parameter is provided, use current date
+    if (!dateParam) {
+      date = new Date();
     } else {
-      date = new Date(dateParam);
+      // Check if dateParam is a Unix timestamp (all digits)
+      if (/^\d+$/.test(dateParam)) {
+        date = new Date(parseInt(dateParam));
+      } else {
+        date = new Date(dateParam);
+      }
     }
-  }
 
-  // Check if date is valid
-  if (date.toString() === 'Invalid Date') {
-    res.json({ error: 'Invalid Date' });
-    return;
-  }
+    // Check if date is valid
+    if (date.toString() === 'Invalid Date') {
+      throw new Error('Invalid Date');
+    }
 
-  // Return both unix and utc formats
-  res.json({
-    unix: date.getTime(),
-    utc: date.toUTCString()
-  });
+    // Return both unix and utc formats
+    res.json({
+      unix: date.getTime(),
+      utc: date.toUTCString()
+    });
+  } catch (error) {
+    res.json({ error: "Invalid Date" });
+  }
 });
 
 // Listen on port set in environment variable or default to 3000
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+
+// Start the server
+const server = app.listen(port, () => {
+  console.log(`Timestamp Microservice is listening on port ${port}`);
 });
+
+// Export the app and server for testing purposes
+module.exports = { app, server };
